@@ -1,0 +1,10 @@
+version: 1
+name: dsh-better-git
+
+plugins:
+  - path: .
+    role: primary
+    watch: dev:client
+
+  - source: github:omdsh-dev/DSH-better-sidebar#bcd60234acc7af74e552086f5c16560452269883
+    role: dependency
