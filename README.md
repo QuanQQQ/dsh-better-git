@@ -25,7 +25,7 @@ Repository scans are bounded to four directory levels and 2,000 visited director
 ## Requirements
 
 - DeepSeek Harness Web on the 0.1.2 line, from 0.1.2-rc.1 up to but excluding 0.1.3 prereleases.
-- `dsh-better-sidebar` 0.17.x, which provides the typed `betterSidebar` client service.
+- `dsh-better-sidebar` 0.18.x, which provides the typed `betterSidebar` client service.
 - Git available on the Host PATH.
 
 ## Usage
@@ -46,7 +46,7 @@ dsh_dev_start({ id: "dsh-better-git" })
 dsh_dev_check({ id: "dsh-better-git" })
 ```
 
-The `.dsh-dev.yml` workspace links the sibling Better Sidebar checkout as a development dependency and links this repository as the primary plugin. It does not alter the stable DSH profile.
+The `.dsh-dev.yml` workspace installs Better Sidebar 0.18.0 from npm as a packaged dependency and links this repository as the primary plugin. It does not alter the stable DSH profile.
 
 Local verification:
 

@@ -9,7 +9,7 @@ Develop and verify `dsh-better-git` through DSH Plugin Dev Manager. Do not link 
 The repository's `.dsh-dev.yml` composes:
 
 - `dsh-better-git` as the local primary plugin;
-- the sibling `dsh-better-sidebar` checkout as the typed service provider and runtime dependency.
+- `dsh-better-sidebar@0.18.0` from npm as the typed service provider and runtime dependency.
 
 Create and start the workspace with:
 

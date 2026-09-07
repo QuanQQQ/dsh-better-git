@@ -29,7 +29,7 @@ test('publishes only DSH 0.1.2 and current Better Sidebar runtime peers', () => 
     '@deepseek-ai/dsh-host-webserver': '>=0.1.2-rc.1 <0.1.3-0',
     '@deepseek-ai/dsh-session': '>=0.1.2-rc.1 <0.1.3-0',
     '@deepseek-ai/dsh-web-app': '>=0.1.2-rc.1 <0.1.3-0',
-    'dsh-better-sidebar': '>=0.17.0 <0.18.0',
+    'dsh-better-sidebar': '>=0.18.0 <0.19.0',
   })
   for (const section of ['dependencies', 'peerDependencies', 'optionalDependencies'] as const) {
     assert.equal(Object.hasOwn(manifest[section] ?? {}, 'cordis'), false)
@@ -43,4 +43,5 @@ test('publishes only DSH 0.1.2 and current Better Sidebar runtime peers', () => 
     assert.equal(Object.hasOwn(manifest.devDependencies ?? {}, legacy), false)
   }
   assert.equal(Object.hasOwn(manifest.scripts ?? {}, 'prepare'), false)
+  assert.equal(manifest.devDependencies?.['dsh-better-sidebar'], '0.18.0')
 })

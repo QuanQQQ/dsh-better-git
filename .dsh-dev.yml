@@ -6,5 +6,5 @@ plugins:
     role: primary
     watch: dev:client
 
-  - path: ../dsh-better-sidebar
+  - source: dsh-better-sidebar@0.18.0
     role: dependency
