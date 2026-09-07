@@ -37,12 +37,14 @@ function requireAbsolute(path: string): string {
   return path
 }
 
-function sessionCwd(ctx: HostContext, sessionId: string, clientCwd?: string): string {
+function sessionCwd(ctx: HostContext, sessionId: string): string {
   const session = ctx.sessions.get(sessionId as SessionId)
-  const headerCwd = session?.header?.cwd
-  if (headerCwd !== undefined && headerCwd !== '') return headerCwd
-  if (clientCwd !== undefined && clientCwd !== '') return requireAbsolute(clientCwd)
-  return process.cwd()
+  if (session === undefined) throw new Error(`unknown session "${sessionId}"`)
+  const cwd = session.header.cwd
+  if (cwd === undefined || cwd === '') {
+    throw new Error(`session "${sessionId}" has no working directory`)
+  }
+  return cwd
 }
 
 function sendJson(res: ServerResponse, status: number, body: unknown): void {
@@ -86,10 +88,8 @@ export function apply(ctx: HostContext): void {
   const trustedHosts = [...ctx.webRuntime.trustedHosts]
 
   const workspaceOf = (payload: unknown): string => {
-    const record = payload as { sessionId?: unknown; cwd?: unknown } | null
     const sessionId = requireString(payload, 'sessionId')
-    const clientCwd = typeof record?.cwd === 'string' ? record.cwd : undefined
-    return sessionCwd(ctx, sessionId, clientCwd)
+    return sessionCwd(ctx, sessionId)
   }
 
   /** Resolve only work trees discovered from this session's workspace. */

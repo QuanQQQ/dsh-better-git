@@ -59,11 +59,7 @@ async function call<T>(method: string, payload: Record<string, unknown>, signal?
 }
 
 function scopePayload(scope: SessionScope, extra: Record<string, unknown>): Record<string, unknown> {
-  return {
-    sessionId: scope.sessionId,
-    ...(scope.cwd !== undefined && scope.cwd !== '' ? { cwd: scope.cwd } : {}),
-    ...extra,
-  }
+  return { sessionId: scope.sessionId, ...extra }
 }
 
 export const api = {

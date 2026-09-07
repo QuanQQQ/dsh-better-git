@@ -24,8 +24,8 @@ Repository scans are bounded to four directory levels and 2,000 visited director
 
 ## Requirements
 
-- DeepSeek Harness Web 0.1.2-rc.1 or a compatible later 0.1.x release.
-- `dsh-better-sidebar` 0.17.0 or later, which provides the typed `betterSidebar` client service.
+- DeepSeek Harness Web on the 0.1.2 line, from 0.1.2-rc.1 up to but excluding 0.1.3 prereleases.
+- `dsh-better-sidebar` 0.17.x, which provides the typed `betterSidebar` client service.
 - Git available on the Host PATH.
 
 ## Usage

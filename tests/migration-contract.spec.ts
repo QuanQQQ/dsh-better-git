@@ -26,10 +26,10 @@ test('publishes typed Host and Client entrypoints', () => {
 test('publishes only DSH 0.1.2 and current Better Sidebar runtime peers', () => {
   assert.deepEqual(manifest.peerDependencies, {
     '@deepseek-ai/cordis': '^4.0.2',
-    '@deepseek-ai/dsh-host-webserver': '^0.1.2-rc.1',
-    '@deepseek-ai/dsh-session': '^0.1.2-rc.1',
-    '@deepseek-ai/dsh-web-app': '^0.1.2-rc.1',
-    'dsh-better-sidebar': '>=0.17.0 <1',
+    '@deepseek-ai/dsh-host-webserver': '>=0.1.2-rc.1 <0.1.3-0',
+    '@deepseek-ai/dsh-session': '>=0.1.2-rc.1 <0.1.3-0',
+    '@deepseek-ai/dsh-web-app': '>=0.1.2-rc.1 <0.1.3-0',
+    'dsh-better-sidebar': '>=0.17.0 <0.18.0',
   })
   for (const section of ['dependencies', 'peerDependencies', 'optionalDependencies'] as const) {
     assert.equal(Object.hasOwn(manifest[section] ?? {}, 'cordis'), false)
