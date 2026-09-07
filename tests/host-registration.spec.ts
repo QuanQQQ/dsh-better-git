@@ -12,6 +12,7 @@ test('registers the Better Git Host route with an HMR disposer', async () => {
   let disposed = false
   const context = {
     sessions: { get: () => undefined },
+    get: () => undefined,
     webRuntime: { lanAddresses: [], trustedHosts: [] },
     webServer: {
       register(value: typeof route) {
@@ -53,6 +54,7 @@ test('rejects a client cwd for an unknown session', async () => {
   let handler: ((request: never, response: never) => void | Promise<void>) | undefined
   const context = {
     sessions: { get: () => undefined },
+    get: () => undefined,
     webRuntime: { lanAddresses: [], trustedHosts: [] },
     webServer: {
       register(route: { handler: typeof handler }) {
@@ -84,10 +86,49 @@ test('rejects a client cwd for an unknown session', async () => {
   assert.deepEqual(JSON.parse(body), { error: 'unknown session "missing"' })
 })
 
+test('resolves a cold session workspace from persistence', async () => {
+  let handler: ((request: never, response: never) => void | Promise<void>) | undefined
+  const context = {
+    sessions: { get: () => undefined },
+    get: (name: string) => name === 'sessionPersistence'
+      ? { inspect: async () => ({ meta: { cwd: process.cwd() } }) }
+      : undefined,
+    webRuntime: { lanAddresses: [], trustedHosts: [] },
+    webServer: {
+      register(route: { handler: typeof handler }) {
+        handler = route.handler
+        return () => {}
+      },
+    },
+    effect(callback: () => void | (() => void)) { callback() },
+  }
+  apply(context as never)
+
+  const request = Readable.from([JSON.stringify({ sessionId: 'cold' })])
+  Object.assign(request, {
+    headers: { host: '127.0.0.1:3000' },
+    method: 'POST',
+    url: '/better-git/api/git.repositories',
+  })
+  let statusCode = 0
+  let body = ''
+  const response = {
+    setHeader() {},
+    end(value: string) { body = value },
+    get statusCode() { return statusCode },
+    set statusCode(value: number) { statusCode = value },
+  }
+
+  await handler?.(request as never, response as never)
+  assert.equal(statusCode, 200, body)
+  assert.ok(Array.isArray(JSON.parse(body)))
+})
+
 test('rejects a session without a Host working directory', async () => {
   let handler: ((request: never, response: never) => void | Promise<void>) | undefined
   const context = {
     sessions: { get: () => ({ header: {} }) },
+    get: () => undefined,
     webRuntime: { lanAddresses: [], trustedHosts: [] },
     webServer: {
       register(route: { handler: typeof handler }) {

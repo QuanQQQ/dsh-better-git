@@ -37,14 +37,23 @@ function requireAbsolute(path: string): string {
   return path
 }
 
-function sessionCwd(ctx: HostContext, sessionId: string): string {
-  const session = ctx.sessions.get(sessionId as SessionId)
-  if (session === undefined) throw new Error(`unknown session "${sessionId}"`)
-  const cwd = session.header.cwd
-  if (cwd === undefined || cwd === '') {
-    throw new Error(`session "${sessionId}" has no working directory`)
+interface SessionPersistence {
+  inspect(sessionId: SessionId): Promise<{ meta: { cwd?: string } }>
+}
+
+async function sessionCwd(ctx: HostContext, sessionId: string): Promise<string> {
+  const id = sessionId as SessionId
+  const session = ctx.sessions.get(id)
+  const liveCwd = session?.header.cwd
+  if (liveCwd !== undefined && liveCwd !== '') return liveCwd
+
+  const persistence = ctx.get('sessionPersistence') as SessionPersistence | undefined
+  if (persistence !== undefined) {
+    const persistedCwd = (await persistence.inspect(id)).meta.cwd
+    if (persistedCwd !== undefined && persistedCwd !== '') return persistedCwd
   }
-  return cwd
+  if (session === undefined) throw new Error(`unknown session "${sessionId}"`)
+  throw new Error(`session "${sessionId}" has no working directory`)
 }
 
 function sendJson(res: ServerResponse, status: number, body: unknown): void {
@@ -87,14 +96,14 @@ async function readJson(req: IncomingMessage): Promise<unknown> {
 export function apply(ctx: HostContext): void {
   const trustedHosts = [...ctx.webRuntime.trustedHosts]
 
-  const workspaceOf = (payload: unknown): string => {
+  const workspaceOf = async (payload: unknown): Promise<string> => {
     const sessionId = requireString(payload, 'sessionId')
-    return sessionCwd(ctx, sessionId)
+    return await sessionCwd(ctx, sessionId)
   }
 
   /** Resolve only work trees discovered from this session's workspace. */
   const resolveRepo = async (payload: unknown): Promise<string> => {
-    const workspace = workspaceOf(payload)
+    const workspace = await workspaceOf(payload)
     const repositories = await git.discoverRepositories(workspace)
     const record = payload as { repo?: unknown } | null
     if (typeof record?.repo !== 'string' || record.repo === '') {
@@ -112,7 +121,7 @@ export function apply(ctx: HostContext): void {
 
   const methods: Record<string, (payload: unknown) => unknown | Promise<unknown>> = {
     'git.repositories': async (payload) => {
-      return git.discoverRepositories(workspaceOf(payload))
+      return git.discoverRepositories(await workspaceOf(payload))
     },
     'git.status': async (payload) => {
       const repo = await resolveRepo(payload)
@@ -184,7 +193,7 @@ export function apply(ctx: HostContext): void {
       return { ok: true }
     },
     'git.submodule-init': async (payload) => {
-      const workspace = workspaceOf(payload)
+      const workspace = await workspaceOf(payload)
       const target = requireAbsolute(requireString(payload, 'target'))
       await git.initializeSubmodule(workspace, target)
       return { ok: true }
