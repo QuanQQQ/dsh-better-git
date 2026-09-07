@@ -7,7 +7,7 @@ export default [
     outDir: 'lib',
     clean: false,
     dts: false,
-    deps: { neverBundle: [/@deepseek-ai\//, 'cordis'] },
+    deps: { neverBundle: [/@deepseek-ai\//, '@deepseek-ai/cordis'] },
     outputOptions: {
       entryFileNames: 'host.mjs',
     },
@@ -20,13 +20,18 @@ export default [
     target: 'es2022',
     outDir: 'lib',
     dts: false,
+    sourcemap: true,
     clean: false,
-    deps: { neverBundle: [/@deepseek-ai\/dsh-client-/, 'react', 'react/jsx-runtime'] },
+    deps: {
+      neverBundle: ['@deepseek-ai/cordis', 'react', 'react/jsx-runtime'],
+      alwaysBundle: (specifier: string) => !['@deepseek-ai/cordis', 'react', 'react/jsx-runtime'].includes(specifier),
+    },
     outputOptions: {
-      entryFileNames: 'index.js',
+      entryFileNames: 'client.js',
       exports: 'named',
-      banner: 'window.__ModuleLoader__.load({ id: "dsh-better-git", factory: (require) => { var module = { exports: {} }; var exports = module.exports;',
-      footer: 'return exports; } });',
+      banner: 'window.__ModuleLoader__.load({ id: "dsh-better-git", factory: (require) => {',
+      footer: 'return module.exports; } });',
+      intro: 'var module = { exports: {} }; var exports = module.exports;',
     },
   },
 ]

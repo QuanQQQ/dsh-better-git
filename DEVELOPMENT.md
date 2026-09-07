@@ -9,7 +9,7 @@ Develop and verify `dsh-better-git` through DSH Plugin Dev Manager. Do not link 
 The repository's `.dsh-dev.yml` composes:
 
 - `dsh-better-git` as the local primary plugin;
-- `dsh-better-sidebar@0.13.1` as a packaged runtime dependency.
+- the sibling `dsh-better-sidebar` checkout as the typed service provider and runtime dependency.
 
 Create and start the workspace with:
 
@@ -22,7 +22,7 @@ Client bundle changes are rebuilt by `dev:client`. Host changes require a contro
 
 ## Verification
 
-The package gate runs type checking, tests, and both Host and Client builds:
+The package gate runs type checking, behavior tests, both Host and Client builds, and a packed-artifact load test:
 
 ```bash
 pnpm check
@@ -37,4 +37,4 @@ dsh_dev_validate({ id: "dsh-better-git" })
 
 ## Extension boundary
 
-The plugin may depend on Better Sidebar's public service descriptors and `registerTab()` behavior. It must not import Better Sidebar source files or private React components. Git API routes must validate explicit repository paths against repositories discovered from the current session workspace before executing a command.
+The plugin may type-import Better Sidebar's public `client/service` export and depend on `registerTab()` behavior. It must not value-import Better Sidebar code or use its private React components. Git API routes must validate explicit repository paths against repositories discovered from the current session workspace before executing a command.

@@ -7,23 +7,18 @@
  */
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { resolve } from 'node:path'
+import type { Context } from '@deepseek-ai/cordis'
+import type {} from '@deepseek-ai/dsh-host-webserver'
+import type { SessionId } from '@deepseek-ai/dsh-session'
+import type { WebRuntimeValues } from '@deepseek-ai/dsh-web-app'
 import * as git from './git.js'
 import { isTrustedBetterGitRequest } from './trust-fence.js'
 
 export const name = 'dsh-better-git'
 export const inject = ['webServer', 'sessions', 'webRuntime']
 
-interface WebServerRoute {
-  kind: 'prefix'
-  path: string
-  handler(req: IncomingMessage, res: ServerResponse): void | Promise<void>
-}
-
-interface HostContext {
-  webServer: { register(route: WebServerRoute): () => void }
-  sessions: { get(sessionId: string): { header?: { cwd?: string } } | undefined }
-  webRuntime: { trustedHosts: readonly string[] }
-  effect(callback: () => void | (() => void), label?: string): unknown
+type HostContext = Context & {
+  webRuntime: WebRuntimeValues
 }
 
 function requireString(payload: unknown, key: string): string {
@@ -43,7 +38,7 @@ function requireAbsolute(path: string): string {
 }
 
 function sessionCwd(ctx: HostContext, sessionId: string, clientCwd?: string): string {
-  const session = ctx.sessions.get(sessionId)
+  const session = ctx.sessions.get(sessionId as SessionId)
   const headerCwd = session?.header?.cwd
   if (headerCwd !== undefined && headerCwd !== '') return headerCwd
   if (clientCwd !== undefined && clientCwd !== '') return requireAbsolute(clientCwd)
@@ -226,5 +221,3 @@ export function apply(ctx: HostContext): void {
     },
   }), 'dsh-better-git: /better-git/api routes')
 }
-
-export default { name, inject, apply }
