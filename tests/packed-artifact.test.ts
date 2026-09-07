@@ -6,6 +6,8 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 import { promisify } from 'node:util'
 import { runInNewContext } from 'node:vm'
 import test from 'node:test'
+import * as React from 'react'
+import * as reactJsxRuntime from 'react/jsx-runtime'
 
 const exec = promisify(execFile)
 
@@ -44,8 +46,8 @@ test('packed artifact exposes loadable Candidate Host and Client entries', async
       },
     })
     const client = clientFactory?.((id) => {
-      if (id === 'react') return {}
-      if (id === 'react/jsx-runtime') return { jsx: () => null, jsxs: () => null }
+      if (id === 'react') return React
+      if (id === 'react/jsx-runtime') return reactJsxRuntime
       throw new Error(`unexpected packed client import: ${id}`)
     })
     assert.deepEqual(Object.keys(client ?? {}).sort(), ['apply', 'inject', 'name'])

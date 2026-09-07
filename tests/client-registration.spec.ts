@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
+import { isValidElement } from 'react'
 import { apply } from '../src/client/index.js'
 
 test('registers one Better Git tab through the public Better Sidebar service', () => {
@@ -23,6 +24,8 @@ test('registers one Better Git tab through the public Better Sidebar service', (
   assert.equal(descriptor?.id, 'better-git')
   assert.equal(descriptor?.title, 'Better Git')
   assert.equal(descriptor?.single, true)
+  assert.equal(typeof descriptor?.icon, 'function')
+  assert.equal(isValidElement((descriptor?.icon as (size: number) => unknown)(16)), true)
   assert.equal(typeof descriptor?.component, 'function')
   assert.equal(disposed, true)
 })
