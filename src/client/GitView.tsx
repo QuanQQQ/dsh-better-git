@@ -519,7 +519,7 @@ export function GitView(props: { scope: SessionScope }) {
         )}
 
         {selectedRepository?.initialized === true && !discovering && (
-          <main className="bgit-content">
+          <main className="bgit-content" data-has-diff={diffPath !== null}>
             {repoLoading && status === null ? (
               <Placeholder icon="branch" title="Loading repository…" copy="Reading branches, changes, and history." />
             ) : (
@@ -547,134 +547,138 @@ export function GitView(props: { scope: SessionScope }) {
                   </section>
                 )}
 
-                {changeCount > 0 && (
-                  <section className="bgit-composer" aria-label="Commit changes">
-                    <textarea
-                      aria-label="Commit message"
-                      className="bgit-composer-input"
-                      value={commitMsg}
-                      onChange={event => setCommitMsg(event.target.value)}
-                      onKeyDown={event => {
-                        if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') void commit()
-                      }}
-                      placeholder={staged.length === 0 ? 'Stage changes before committing…' : 'Commit message…'}
-                      rows={2}
-                      disabled={busy}
-                    />
-                    <div className="bgit-composer-actions">
-                      <span className="bgit-composer-hint">⌘↵ to commit</span>
-                      <button
-                        type="button"
-                        className="bgit-primary-button"
-                        disabled={busy || commitMsg.trim() === '' || staged.length === 0}
-                        onClick={() => { void commit() }}
-                      >
-                        <Icon name="check" size={14} />
-                        Commit
-                      </button>
-                    </div>
-                  </section>
-                )}
-
-                {staged.length > 0 && (
-                  <Section
-                    title="Staged changes"
-                    count={staged.length}
-                    action={(
-                      <SectionAction icon="minus" label="Unstage all" disabled={busy} onClick={() => { void unstage() }} />
-                    )}
-                  >
-                    {staged.map(entry => (
-                      <FileRow
-                        key={entry.path}
-                        entry={entry}
+                <div className="bgit-controls">
+                  {changeCount > 0 && (
+                    <section className="bgit-composer" aria-label="Commit changes">
+                      <textarea
+                        aria-label="Commit message"
+                        className="bgit-composer-input"
+                        value={commitMsg}
+                        onChange={event => setCommitMsg(event.target.value)}
+                        onKeyDown={event => {
+                          if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') void commit()
+                        }}
+                        placeholder={staged.length === 0 ? 'Stage changes before committing…' : 'Commit message…'}
+                        rows={2}
                         disabled={busy}
-                        onDiff={() => { void openDiff(entry.path, true) }}
-                        onUnstage={() => { void unstage(entry.path) }}
                       />
-                    ))}
-                  </Section>
-                )}
+                      <div className="bgit-composer-actions">
+                        <span className="bgit-composer-hint">⌘↵ to commit</span>
+                        <button
+                          type="button"
+                          className="bgit-primary-button"
+                          disabled={busy || commitMsg.trim() === '' || staged.length === 0}
+                          onClick={() => { void commit() }}
+                        >
+                          <Icon name="check" size={14} />
+                          Commit
+                        </button>
+                      </div>
+                    </section>
+                  )}
 
-                {unstaged.length > 0 && (
-                  <Section
-                    title="Changes"
-                    count={unstaged.length}
-                    action={(
-                      <SectionAction icon="plus" label="Stage all" disabled={busy} onClick={() => { void stage() }} />
-                    )}
-                  >
-                    {unstaged.map(entry => (
-                      <FileRow
-                        key={entry.path}
-                        entry={entry}
-                        disabled={busy}
-                        onDiff={() => { void openDiff(entry.path, false) }}
-                        onStage={() => { void stage(entry.path) }}
-                        onDiscard={() => { void discard(entry.path) }}
-                      />
-                    ))}
-                  </Section>
-                )}
-
-                {untracked.length > 0 && (
-                  <Section
-                    title="Untracked"
-                    count={untracked.length}
-                    action={(
-                      <SectionAction icon="plus" label="Stage all" disabled={busy} onClick={() => { void stage() }} />
-                    )}
-                  >
-                    {untracked.map(entry => (
-                      <FileRow
-                        key={entry.path}
-                        entry={entry}
-                        disabled={busy}
-                        onStage={() => { void stage(entry.path) }}
-                      />
-                    ))}
-                  </Section>
-                )}
-
-                {changeCount === 0 && !repoLoading && (
-                  <div className="bgit-empty-changes">Working tree clean</div>
-                )}
-
-                <Section title="History" count={logEntries.length} defaultOpen={changeCount === 0}>
-                  <div className="bgit-history-list">
-                    {logEntries.map(entry => (
-                      <button
-                        key={entry.hashFull}
-                        type="button"
-                        className="bgit-log-row"
-                        title={`${entry.hashFull}\n${entry.author} · ${entry.date}`}
-                        onClick={() => { void openCommitDiff(entry) }}
+                  <div className="bgit-changes-history">
+                    {staged.length > 0 && (
+                      <Section
+                        title="Staged changes"
+                        count={staged.length}
+                        action={(
+                          <SectionAction icon="minus" label="Unstage all" disabled={busy} onClick={() => { void unstage() }} />
+                        )}
                       >
-                        <span className="bgit-log-node" aria-hidden="true" />
-                        <span className="bgit-log-subject">{entry.subject}</span>
-                        <span className="bgit-log-time">{relativeTime(entry.date)}</span>
-                        <span className="bgit-log-meta">
-                          <span className="bgit-log-hash">{entry.hash}</span>
-                          {refNames(entry.refs).slice(0, 2).map(ref => <span key={ref} className="bgit-log-ref">{ref}</span>)}
-                          <span className="bgit-log-author">{entry.author}</span>
-                        </span>
-                      </button>
-                    ))}
-                    {logEntries.length === 0 && !logLoading && (
-                      <div className="bgit-placeholder-copy">No commits to show.</div>
+                        {staged.map(entry => (
+                          <FileRow
+                            key={entry.path}
+                            entry={entry}
+                            disabled={busy}
+                            onDiff={() => { void openDiff(entry.path, true) }}
+                            onUnstage={() => { void unstage(entry.path) }}
+                          />
+                        ))}
+                      </Section>
                     )}
-                    {!logEnded && (
-                      <button
-                        type="button"
-                        className="bgit-load-more"
-                        disabled={logLoading || repoLoading}
-                        onClick={() => { void loadMoreLog() }}
+
+                    {unstaged.length > 0 && (
+                      <Section
+                        title="Changes"
+                        count={unstaged.length}
+                        action={(
+                          <SectionAction icon="plus" label="Stage all" disabled={busy} onClick={() => { void stage() }} />
+                        )}
                       >
-                        {logLoading ? 'Loading history…' : 'Load more'}
-                      </button>
+                        {unstaged.map(entry => (
+                          <FileRow
+                            key={entry.path}
+                            entry={entry}
+                            disabled={busy}
+                            onDiff={() => { void openDiff(entry.path, false) }}
+                            onStage={() => { void stage(entry.path) }}
+                            onDiscard={() => { void discard(entry.path) }}
+                          />
+                        ))}
+                      </Section>
                     )}
+
+                    {untracked.length > 0 && (
+                      <Section
+                        title="Untracked"
+                        count={untracked.length}
+                        action={(
+                          <SectionAction icon="plus" label="Stage all" disabled={busy} onClick={() => { void stage() }} />
+                        )}
+                      >
+                        {untracked.map(entry => (
+                          <FileRow
+                            key={entry.path}
+                            entry={entry}
+                            disabled={busy}
+                            onStage={() => { void stage(entry.path) }}
+                          />
+                        ))}
+                      </Section>
+                    )}
+
+                    {changeCount === 0 && !repoLoading && (
+                      <div className="bgit-empty-changes">Working tree clean</div>
+                    )}
+
+                    <Section title="History" count={logEntries.length} defaultOpen={changeCount === 0}>
+                      <div className="bgit-history-list">
+                        {logEntries.map(entry => (
+                          <button
+                            key={entry.hashFull}
+                            type="button"
+                            className="bgit-log-row"
+                            title={`${entry.hashFull}\n${entry.author} · ${entry.date}`}
+                            onClick={() => { void openCommitDiff(entry) }}
+                          >
+                            <span className="bgit-log-node" aria-hidden="true" />
+                            <span className="bgit-log-subject">{entry.subject}</span>
+                            <span className="bgit-log-time">{relativeTime(entry.date)}</span>
+                            <span className="bgit-log-meta">
+                              <span className="bgit-log-hash">{entry.hash}</span>
+                              {refNames(entry.refs).slice(0, 2).map(ref => <span key={ref} className="bgit-log-ref">{ref}</span>)}
+                              <span className="bgit-log-author">{entry.author}</span>
+                            </span>
+                          </button>
+                        ))}
+                        {logEntries.length === 0 && !logLoading && (
+                          <div className="bgit-placeholder-copy">No commits to show.</div>
+                        )}
+                        {!logEnded && (
+                          <button
+                            type="button"
+                            className="bgit-load-more"
+                            disabled={logLoading || repoLoading}
+                            onClick={() => { void loadMoreLog() }}
+                          >
+                            {logLoading ? 'Loading history…' : 'Load more'}
+                          </button>
+                        )}
+                      </div>
+                    </Section>
                   </div>
-                </Section>
+                </div>
               </>
             )}
           </main>

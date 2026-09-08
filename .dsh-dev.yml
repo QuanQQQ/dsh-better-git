@@ -6,5 +6,5 @@ plugins:
     role: primary
     watch: dev:client
 
-  - source: github:omdsh-dev/DSH-better-sidebar#bcd60234acc7af74e552086f5c16560452269883
+  - source: dsh-better-sidebar@0.18.0
     role: dependency

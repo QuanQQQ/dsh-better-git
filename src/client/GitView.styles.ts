@@ -12,6 +12,7 @@ export const GIT_VIEW_STYLES = `
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  container: better-git / inline-size;
   background: var(--dsw-alias-bg-layer-1);
   color: var(--dsw-alias-label-primary);
   font: var(--dsw-font-xxs-12, 12px/18px system-ui, sans-serif);
@@ -215,6 +216,33 @@ export const GIT_VIEW_STYLES = `
 
 .bgit-content {
   flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  overflow: hidden;
+}
+
+.bgit-content[data-has-diff='true'] {
+  grid-template-columns: minmax(0, 1fr) clamp(220px, 32%, 320px);
+}
+
+.bgit-controls {
+  container: better-git-controls / inline-size;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.bgit-content[data-has-diff='true'] .bgit-controls {
+  border-left: 1px solid var(--dsw-alias-border-l1);
+}
+
+.bgit-changes-history {
+  flex: 1;
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
@@ -271,6 +299,10 @@ export const GIT_VIEW_STYLES = `
 }
 
 .bgit-diff {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
   margin: 8px;
   border: 1px solid var(--dsw-alias-border-l1);
   border-radius: 8px;
@@ -279,6 +311,7 @@ export const GIT_VIEW_STYLES = `
 }
 
 .bgit-diff-header {
+  flex: none;
   min-height: 32px;
   display: flex;
   align-items: center;
@@ -316,7 +349,8 @@ export const GIT_VIEW_STYLES = `
 }
 
 .bgit-diff-renderer {
-  max-height: min(560px, 65vh);
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
   background: var(--dsw-alias-bg-base);
@@ -408,6 +442,7 @@ export const GIT_VIEW_STYLES = `
 }
 
 .bgit-composer {
+  flex: none;
   margin: 8px;
   padding: 8px;
   border: 1px solid var(--dsw-alias-border-l1);
@@ -801,7 +836,30 @@ export const GIT_VIEW_STYLES = `
   outline-offset: -2px;
 }
 
-@media (max-width: 520px) {
+@container better-git (max-width: 599px) {
+  .bgit-content[data-has-diff='true'] {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .bgit-content[data-has-diff='true'] .bgit-controls {
+    border-left: none;
+    border-top: 1px solid var(--dsw-alias-border-l1);
+  }
+}
+
+@container better-git-controls (max-width: 320px) {
+  .bgit-file-dir,
+  .bgit-section-action span {
+    display: none;
+  }
+
+  .bgit-row-main {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@container better-git (max-width: 520px) {
   .bgit-file-dir,
   .bgit-change-summary,
   .bgit-composer-hint,

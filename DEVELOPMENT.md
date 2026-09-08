@@ -9,7 +9,9 @@ Develop and verify `dsh-better-git` through DSH Plugin Dev Manager. Do not link 
 The repository's `.dsh-dev.yml` composes:
 
 - `dsh-better-git` as the local primary plugin;
-- `dsh-better-sidebar@0.13.1` as a packaged runtime dependency.
+- `dsh-better-sidebar@0.18.0` as a packaged runtime dependency for DSH `0.1.2-rc.1`.
+
+Better Git requires the client-side `betterSidebar` service. Installing only Better Git leaves its client entry pending and fails Web boot. Use the workspace manifest, not a single-package `dsh_dev_create` call without explicit dependencies. Sidebar `0.13.1` cannot boot on DSH `0.1.2-rc.1` because it imports the removed `settingsNamespace` export.
 
 Create and start the workspace with:
 
@@ -17,6 +19,8 @@ Create and start the workspace with:
 dsh_dev_workspace_create({ workspacePath: "/absolute/path/to/dsh-better-git" })
 dsh_dev_start({ id: "dsh-better-git" })
 ```
+
+Use the id returned by the manager for subsequent calls. To repair an existing instance, stop that instance and pass its existing id to `dsh_dev_workspace_create`; this preserves its managed port while refreshing the plugin composition.
 
 Client bundle changes are rebuilt by `dev:client`. Host changes require a controlled `dsh_dev_restart({ id: "dsh-better-git", confirm: true })` after saving work in the isolated instance.
 
@@ -34,6 +38,15 @@ The Git behavior tests create temporary local repositories and do not require ne
 dsh_dev_check({ id: "dsh-better-git" })
 dsh_dev_validate({ id: "dsh-better-git" })
 ```
+
+### Browser integration smoke check
+
+Host health and component tests do not prove that client services activate. At the managed instance URL:
+
+1. Authenticate and confirm the Web shell renders without `Failed to load plugins` or pending-entry errors.
+2. Select a Git workspace, expand the sidebar, and open **Better Git** from **New tab**. An empty draft is sufficient; do not send an agent message just to test the panel.
+3. Confirm repository discovery and history load. Open a changed file or history commit and check that a rendered diff appears without console errors.
+4. At panel widths of at least 600px, confirm Diff is on the left and commit controls/history are on the right. Check independent scrolling and preservation of any commit draft when closing Diff. Below 600px, confirm the stacked panes remain usable.
 
 ## Extension boundary
 
