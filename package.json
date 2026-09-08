@@ -1,6 +1,6 @@
 {
   "name": "dsh-better-git",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Multi-repository Git panel for DSH Better Sidebar",
   "keywords": ["dsh", "dsh-plugin", "git", "sidebar"],
   "type": "module",
