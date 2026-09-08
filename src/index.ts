@@ -7,23 +7,18 @@
  */
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { resolve } from 'node:path'
+import type { Context } from '@deepseek-ai/cordis'
+import type {} from '@deepseek-ai/dsh-host-webserver'
+import type { SessionId } from '@deepseek-ai/dsh-session'
+import type { WebRuntimeValues } from '@deepseek-ai/dsh-web-app'
 import * as git from './git.js'
 import { isTrustedBetterGitRequest } from './trust-fence.js'
 
 export const name = 'dsh-better-git'
 export const inject = ['webServer', 'sessions', 'webRuntime']
 
-interface WebServerRoute {
-  kind: 'prefix'
-  path: string
-  handler(req: IncomingMessage, res: ServerResponse): void | Promise<void>
-}
-
-interface HostContext {
-  webServer: { register(route: WebServerRoute): () => void }
-  sessions: { get(sessionId: string): { header?: { cwd?: string } } | undefined }
-  webRuntime: { trustedHosts: readonly string[] }
-  effect(callback: () => void | (() => void), label?: string): unknown
+type HostContext = Context & {
+  webRuntime: WebRuntimeValues
 }
 
 function requireString(payload: unknown, key: string): string {
@@ -42,12 +37,23 @@ function requireAbsolute(path: string): string {
   return path
 }
 
-function sessionCwd(ctx: HostContext, sessionId: string, clientCwd?: string): string {
-  const session = ctx.sessions.get(sessionId)
-  const headerCwd = session?.header?.cwd
-  if (headerCwd !== undefined && headerCwd !== '') return headerCwd
-  if (clientCwd !== undefined && clientCwd !== '') return requireAbsolute(clientCwd)
-  return process.cwd()
+interface SessionPersistence {
+  inspect(sessionId: SessionId): Promise<{ meta: { cwd?: string } }>
+}
+
+async function sessionCwd(ctx: HostContext, sessionId: string): Promise<string> {
+  const id = sessionId as SessionId
+  const session = ctx.sessions.get(id)
+  const liveCwd = session?.header.cwd
+  if (liveCwd !== undefined && liveCwd !== '') return liveCwd
+
+  const persistence = ctx.get('sessionPersistence') as SessionPersistence | undefined
+  if (persistence !== undefined) {
+    const persistedCwd = (await persistence.inspect(id)).meta.cwd
+    if (persistedCwd !== undefined && persistedCwd !== '') return persistedCwd
+  }
+  if (session === undefined) throw new Error(`unknown session "${sessionId}"`)
+  throw new Error(`session "${sessionId}" has no working directory`)
 }
 
 function sendJson(res: ServerResponse, status: number, body: unknown): void {
@@ -90,16 +96,14 @@ async function readJson(req: IncomingMessage): Promise<unknown> {
 export function apply(ctx: HostContext): void {
   const trustedHosts = [...ctx.webRuntime.trustedHosts]
 
-  const workspaceOf = (payload: unknown): string => {
-    const record = payload as { sessionId?: unknown; cwd?: unknown } | null
+  const workspaceOf = async (payload: unknown): Promise<string> => {
     const sessionId = requireString(payload, 'sessionId')
-    const clientCwd = typeof record?.cwd === 'string' ? record.cwd : undefined
-    return sessionCwd(ctx, sessionId, clientCwd)
+    return await sessionCwd(ctx, sessionId)
   }
 
   /** Resolve only work trees discovered from this session's workspace. */
   const resolveRepo = async (payload: unknown): Promise<string> => {
-    const workspace = workspaceOf(payload)
+    const workspace = await workspaceOf(payload)
     const repositories = await git.discoverRepositories(workspace)
     const record = payload as { repo?: unknown } | null
     if (typeof record?.repo !== 'string' || record.repo === '') {
@@ -117,7 +121,7 @@ export function apply(ctx: HostContext): void {
 
   const methods: Record<string, (payload: unknown) => unknown | Promise<unknown>> = {
     'git.repositories': async (payload) => {
-      return git.discoverRepositories(workspaceOf(payload))
+      return git.discoverRepositories(await workspaceOf(payload))
     },
     'git.status': async (payload) => {
       const repo = await resolveRepo(payload)
@@ -189,7 +193,7 @@ export function apply(ctx: HostContext): void {
       return { ok: true }
     },
     'git.submodule-init': async (payload) => {
-      const workspace = workspaceOf(payload)
+      const workspace = await workspaceOf(payload)
       const target = requireAbsolute(requireString(payload, 'target'))
       await git.initializeSubmodule(workspace, target)
       return { ok: true }
@@ -226,5 +230,3 @@ export function apply(ctx: HostContext): void {
     },
   }), 'dsh-better-git: /better-git/api routes')
 }
-
-export default { name, inject, apply }

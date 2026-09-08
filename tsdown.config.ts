@@ -25,7 +25,7 @@ export default [
     outDir: 'lib',
     clean: false,
     dts: false,
-    deps: { neverBundle: [/@deepseek-ai\//, 'cordis'] },
+    deps: { neverBundle: [/@deepseek-ai\//, '@deepseek-ai/cordis'] },
     outputOptions: {
       entryFileNames: 'host.mjs',
     },
@@ -39,17 +39,19 @@ export default [
     define: { 'process.env.NODE_ENV': JSON.stringify('production') },
     outDir: 'lib',
     dts: false,
+    sourcemap: true,
     clean: false,
     deps: {
-      neverBundle: [/@deepseek-ai\/dsh-client-/, /^react(?:\/|$)/, /^react-dom(?:\/|$)/],
-      alwaysBundle: (id: string) => !/^(?:@deepseek-ai\/dsh-client-|react(?:-dom)?(?:\/|$))/.test(id),
+      neverBundle: ['@deepseek-ai/cordis', /^react(?:\/|$)/, /^react-dom(?:\/|$)/],
+      alwaysBundle: (id: string) => id !== '@deepseek-ai/cordis' && !/^react(?:-dom)?(?:\/|$)/.test(id),
       onlyBundle: false,
     },
     outputOptions: {
-      entryFileNames: 'index.js',
+      entryFileNames: 'client.js',
       exports: 'named',
-      banner: `${clientStyleBootstrap}\nwindow.__ModuleLoader__.load({ id: "dsh-better-git", factory: (require) => { var module = { exports: {} }; var exports = module.exports;`,
-      footer: 'return exports; } });',
+      banner: `${clientStyleBootstrap}\nwindow.__ModuleLoader__.load({ id: "dsh-better-git", factory: (require) => {`,
+      footer: 'return module.exports; } });',
+      intro: 'var module = { exports: {} }; var exports = module.exports;',
     },
   },
 ]

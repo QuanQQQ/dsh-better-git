@@ -6,8 +6,8 @@
  * To replace the built-in git tab, disable it in the sidebar settings
  * (Settings → Side card → Git → off). The better-git tab then takes over.
  */
+import type { Context } from '@deepseek-ai/cordis'
 import type {} from 'dsh-better-sidebar/client/service'
-import type { Context } from 'cordis'
 import type { ReactElement } from 'react'
 import { GitView } from './GitView.js'
 
@@ -48,5 +48,3 @@ export function apply(ctx: Context): void {
     })
   }, 'dsh-better-git: register better-git tab')
 }
-
-export default { name, inject, apply }

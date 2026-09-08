@@ -5,6 +5,9 @@
  * every call accepts an explicit `repo` absolute path so the panel can switch
  * between discovered repositories.
  */
+import type { SessionScope } from 'dsh-better-sidebar/client/service'
+
+export type { SessionScope } from 'dsh-better-sidebar/client/service'
 
 export interface GitStatusEntry {
   path: string
@@ -35,11 +38,6 @@ export interface GitRepositoryInfo {
   state: 'ready' | 'uninitialized' | 'out-of-sync' | 'conflicted'
 }
 
-export interface SessionScope {
-  sessionId: string
-  cwd?: string
-}
-
 async function call<T>(method: string, payload: Record<string, unknown>, signal?: AbortSignal): Promise<T> {
   const init: RequestInit = {
     method: 'POST',
@@ -61,11 +59,7 @@ async function call<T>(method: string, payload: Record<string, unknown>, signal?
 }
 
 function scopePayload(scope: SessionScope, extra: Record<string, unknown>): Record<string, unknown> {
-  return {
-    sessionId: scope.sessionId,
-    ...(scope.cwd !== undefined && scope.cwd !== '' ? { cwd: scope.cwd } : {}),
-    ...extra,
-  }
+  return { sessionId: scope.sessionId, ...extra }
 }
 
 export const api = {
